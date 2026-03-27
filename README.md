@@ -17,7 +17,7 @@ recommendation.
 - Python 3.12+
 - Docker Desktop
 - A Nova API key from [nova.amazon.com/dev/api](https://nova.amazon.com/dev/api) — sign in
-  with your Amazon account, no AWS account required
+  with your Amazon account, no AWS account required.
 
 ## Setup
 
