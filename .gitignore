@@ -1,0 +1,32 @@
+# ── Credentials — NEVER commit ────────────────────────────────────
+.env
+
+# ── Python ────────────────────────────────────────────────────────
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Runtime artefacts (generated when servers run locally) ────────
+otel.log
+*.pid
+.mcp_server.pid
+.style_agent.pid
+.provenance_agent.pid
+.valuation_agent.pid
+.synthesis_agent.pid
+
+# ── Reserved for publication ──────────────────────────────────────
+ARCHITECTURE.md
+
+# ── OS / editor ───────────────────────────────────────────────────
+.DS_Store
+.claude/
+*.swp
+*.swo
+.idea/
+.vscode/

@@ -1,0 +1,23 @@
+# Credentials — NEVER in images
+.env
+
+# Python
+.venv/
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Runtime artefacts
+otel.log
+*.pid
+
+# Version control / editor
+.git/
+.claude/
+*.swp
+*.swo
+.idea/
+.vscode/
+
+# Docs (not needed at runtime)
+*.md
