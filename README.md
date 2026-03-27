@@ -23,7 +23,7 @@ recommendation.
 
 ```bash
 git clone <your-repo-url>
-cd a2a_adk_mcp_pure_swarm
+cd nova_adk_a2a_mcp_swarm
 
 # Create virtual environment
 python3.12 -m venv .venv
