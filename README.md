@@ -22,7 +22,7 @@ recommendation.
 ## Setup
 
 ```bash
-git clone <your-repo-url>
+git clone --branch part-1 --depth 1 <your-repo-url> 
 cd nova_adk_a2a_mcp_swarm
 
 # Create virtual environment
