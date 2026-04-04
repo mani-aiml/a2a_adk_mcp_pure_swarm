@@ -1,24 +1,11 @@
 from pathlib import Path
-from shared.config import bootstrap, DEFAULT_MODEL, AGENT_HOST
+from shared.config import bootstrap
 bootstrap()
 
-from google.adk.agents import Agent
-from google.adk.a2a.utils.agent_to_a2a import to_a2a
+from shared.registry import SYNTHESIS
+from shared.agent_factory import build_synthesis, run_agent_server
 
-_PROMPT = Path(__file__).parent.joinpath("prompt.txt").read_text()
-
-synthesis_agent = Agent(
-    name="synthesis_agent",
-    model=DEFAULT_MODEL,
-    description=(
-        "Chief appraiser: reads all specialist reports, extracts votes, "
-        "applies majority voting, and issues the final appraisal verdict."
-    ),
-    instruction=_PROMPT,
-)
-
-a2a_app = to_a2a(synthesis_agent, port=8004)
+synthesis_agent, a2a_app = build_synthesis(SYNTHESIS, Path(__file__).parent)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(a2a_app, host=AGENT_HOST, port=8004)
+    run_agent_server(a2a_app)

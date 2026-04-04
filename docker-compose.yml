@@ -4,15 +4,13 @@ services:
     build:
       context: .
       dockerfile: mcp_server/Dockerfile
-    ports:
-      - "8003:8003"
     environment:
       AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
     networks:
       - appraisal-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8003), timeout=5).close()"]
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -22,57 +20,101 @@ services:
     build:
       context: .
       dockerfile: style_agent/Dockerfile
-    ports:
-      - "8000:8000"
     environment:
-      MCP_SERVER_URL: "http://mcp-server:8003/mcp"
+      MCP_SERVER_URL: "http://mcp-server:8080/mcp"
+      AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
     depends_on:
       mcp-server:
         condition: service_healthy
     networks:
       - appraisal-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   provenance-agent:
     build:
       context: .
       dockerfile: provenance_agent/Dockerfile
-    ports:
-      - "8001:8001"
     environment:
-      MCP_SERVER_URL: "http://mcp-server:8003/mcp"
+      MCP_SERVER_URL: "http://mcp-server:8080/mcp"
+      AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
     depends_on:
       mcp-server:
         condition: service_healthy
     networks:
       - appraisal-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   valuation-agent:
     build:
       context: .
       dockerfile: valuation_agent/Dockerfile
-    ports:
-      - "8002:8002"
     environment:
-      MCP_SERVER_URL: "http://mcp-server:8003/mcp"
+      MCP_SERVER_URL: "http://mcp-server:8080/mcp"
+      AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
     depends_on:
       mcp-server:
         condition: service_healthy
     networks:
       - appraisal-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
 
   synthesis-agent:
     build:
       context: .
       dockerfile: synthesis_agent/Dockerfile
-    ports:
-      - "8004:8004"
     environment:
+      AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
     networks:
       - appraisal-net
+    healthcheck:
+      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: orchestrator/Dockerfile
+    environment:
+      NOVA_API_KEY: ${NOVA_API_KEY}
+      STYLE_ANALYST_URL: "http://style-agent:8080"
+      PROVENANCE_SPECIALIST_URL: "http://provenance-agent:8080"
+      MARKET_VALUATOR_URL: "http://valuation-agent:8080"
+      SYNTHESIS_AGENT_URL: "http://synthesis-agent:8080"
+    depends_on:
+      style-agent:
+        condition: service_healthy
+      provenance-agent:
+        condition: service_healthy
+      valuation-agent:
+        condition: service_healthy
+      synthesis-agent:
+        condition: service_healthy
+    networks:
+      - appraisal-net
+    stdin_open: true
+    tty: true
 
 networks:
   appraisal-net:

@@ -1,7 +1,12 @@
-from mcp.server.fastmcp import FastMCP
-from shared.config import MCP_SERVER_PORT, AGENT_HOST
+import logging
 
-mcp = FastMCP("art-appraisal-tools", port=MCP_SERVER_PORT, host=AGENT_HOST)
+from mcp.server.fastmcp import FastMCP
+from shared.config import AGENT_HOST
+from shared.registry import AGENT_PORT
+
+logger = logging.getLogger(__name__)
+
+mcp = FastMCP("art-appraisal-tools", port=AGENT_PORT, host=AGENT_HOST)
 
 
 @mcp.tool()
@@ -24,7 +29,10 @@ def cast_vote(
         Confirmed vote record.
     """
     valid = {"BUY", "HOLD", "VERIFY_FURTHER"}
-    rec = recommendation.upper() if recommendation.upper() in valid else "VERIFY_FURTHER"
+    upper = recommendation.upper()
+    if upper not in valid:
+        logger.warning("Invalid vote '%s' coerced to VERIFY_FURTHER", recommendation)
+    rec = upper if upper in valid else "VERIFY_FURTHER"
     return {
         "vote": rec,
         "confidence": round(max(0.0, min(1.0, float(confidence))), 2),
@@ -273,5 +281,5 @@ def estimate_insurance_value(
 
 
 if __name__ == "__main__":
-    print(f"MCP tool server → http://0.0.0.0:{MCP_SERVER_PORT}/mcp")
+    print(f"MCP tool server -> http://{AGENT_HOST}:{AGENT_PORT}/mcp")
     mcp.run(transport="streamable-http")
