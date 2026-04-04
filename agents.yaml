@@ -1,0 +1,61 @@
+agent_port: 8080
+mcp_port: 8080
+
+specialists:
+  - name: style_analyst
+    service_name: style-agent
+    description: >-
+      Specialist in art history, artistic style, technique, and medium analysis.
+      Analyzes style, movement, technique, and physical condition of artworks.
+    tools:
+      - analyze_style
+      - assess_condition_factors
+      - cast_vote
+    label: STYLE ANALYST
+    color: "\033[1;96m"
+
+  - name: provenance_specialist
+    service_name: provenance-agent
+    description: >-
+      Specialist in artwork provenance, ownership history, authenticity
+      verification, and legal/export restrictions.
+    tools:
+      - check_provenance
+      - check_export_restrictions
+      - cast_vote
+    label: PROVENANCE
+    color: "\033[1;93m"
+
+  - name: market_valuator
+    service_name: valuation-agent
+    description: >-
+      Specialist in art market valuation, recent auction comparables,
+      and insurance value estimation.
+    tools:
+      - get_auction_comparables
+      - estimate_insurance_value
+      - cast_vote
+    label: MARKET VALUATOR
+    color: "\033[1;92m"
+
+synthesis:
+  name: synthesis_agent
+  service_name: synthesis-agent
+  description: >-
+    Chief appraiser: reads all specialist reports, extracts votes,
+    applies majority voting, and issues the final appraisal verdict.
+  label: SYNTHESIS (VOTING)
+  color: "\033[1;95m"
+
+mcp:
+  service_name: mcp-server
+
+pipeline:
+  name: art_appraisal_pipeline
+  label: PIPELINE
+  color: "\033[1;97m"
+
+parallel:
+  name: parallel_evaluation
+  label: PARALLEL EVALUATION
+  color: "\033[1;97m"

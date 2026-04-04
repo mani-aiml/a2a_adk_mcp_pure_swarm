@@ -1,32 +1,12 @@
 from pathlib import Path
-from shared.config import bootstrap, DEFAULT_MODEL, MCP_SERVER_URL, AGENT_HOST
+from shared.config import bootstrap
 bootstrap()
 
-from google.adk.agents import Agent
-from google.adk.a2a.utils.agent_to_a2a import to_a2a
-from google.adk.tools.mcp_tool.mcp_toolset import McpToolset
-from google.adk.tools.mcp_tool.mcp_session_manager import StreamableHTTPConnectionParams
+from shared.registry import SPECIALISTS
+from shared.agent_factory import build_specialist, run_agent_server
 
-_PROMPT = Path(__file__).parent.joinpath("prompt.txt").read_text()
-
-market_valuator = Agent(
-    name="market_valuator",
-    model=DEFAULT_MODEL,
-    description=(
-        "Specialist in art market valuation, recent auction comparables, "
-        "and insurance value estimation."
-    ),
-    instruction=_PROMPT,
-    tools=[
-        McpToolset(
-            connection_params=StreamableHTTPConnectionParams(url=MCP_SERVER_URL),
-            tool_filter=["get_auction_comparables", "estimate_insurance_value", "cast_vote"],
-        )
-    ],
-)
-
-a2a_app = to_a2a(market_valuator, port=8002)
+_entry = next(s for s in SPECIALISTS if s.name == "market_valuator")
+market_valuator, a2a_app = build_specialist(_entry, Path(__file__).parent)
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run(a2a_app, host=AGENT_HOST, port=8002)
+    run_agent_server(a2a_app)
