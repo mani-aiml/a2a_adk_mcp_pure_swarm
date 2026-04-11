@@ -7,10 +7,10 @@ It covers three evaluation layers: unit, integration, and trace.
 
 | Surface | Role | Typical commands |
 |--------|------|------------------|
-| **01 — ADK Web** | Author goldens, run **Run Evaluation**, inspect session graph / verification | `adk web` (see [ADK Evaluate](https://google.github.io/adk-docs/evaluate/)) |
-| **02 — Host CLI** | Local regression; host must reach MCP / agents if you run `adk eval` | `./evaluation/run_evals.sh`, `pytest evaluation/...` |
-| **03 — CI** | Gate merges without Docker; pytest unit + integration; JUnit artifact | `.github/workflows/evaluation.yml` |
-| **04 — Eval runner (Docker)** | `adk eval` + pytest **on** `appraisal-net` (MCP + A2A URLs set automatically) | `docker compose --profile eval run --rm eval-runner` (see root `README.md`) |
+| **01. ADK Web** | Author goldens, run **Run Evaluation**, inspect session graph / verification | `adk web` (see [ADK Evaluate](https://google.github.io/adk-docs/evaluate/)) |
+| **02. Host CLI** | Local regression; host must reach MCP / agents if you run `adk eval` | `./evaluation/run_evals.sh`, `pytest evaluation/...` |
+| **03. CI** | Gate merges without Docker; pytest unit + integration; JUnit artifact | `.github/workflows/evaluation.yml` |
+| **04. Eval runner (Docker)** | `adk eval` + pytest **on** `appraisal-net` (MCP + A2A URLs set automatically) | `docker compose --profile eval run --rm eval-runner` (see root `README.md`) |
 
 ADK Web is for **agent execution** visibility; for **distributed OTLP** traces across containers use **Jaeger** (or Grafana Tempo) — see root `docker-compose.yml` and `otel_setup.py`.
 
