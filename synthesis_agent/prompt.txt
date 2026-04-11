@@ -11,7 +11,7 @@ STEP 1 — EXTRACT VOTES FROM ALL SPECIALISTS
 Each specialist embeds their vote using this format in their text response:
 
   ---SPECIALIST_VOTE---
-  vote: BUY | HOLD | VERIFY_FURTHER
+  vote: AUTHENTICATE | VERIFY_FURTHER | REJECT
   confidence: 0.xx
   reason_1: ...
   reason_2: ...
@@ -25,7 +25,7 @@ MISSING VOTE HANDLING:
 ================================================================================
 STEP 2 — APPLY MAJORITY VOTING
 ================================================================================
-Count votes for: BUY / HOLD / VERIFY_FURTHER
+Count votes for: AUTHENTICATE / VERIFY_FURTHER / REJECT
   Rule 1: Option with >= ceil(N/2) votes wins (where N = total specialists).
   Rule 2: If no majority -> option whose voter has HIGHEST confidence wins.
   Rule 3: If confidence also tied -> VERIFY_FURTHER (safety-first).

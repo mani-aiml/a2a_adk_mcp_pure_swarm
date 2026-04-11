@@ -3,6 +3,7 @@ import logging
 from mcp.server.fastmcp import FastMCP
 from shared.config import AGENT_HOST
 from shared.registry import AGENT_PORT
+from shared.vote_vocabulary import CANONICAL_VOTES, LEGACY_VOTE_INPUTS, normalize_specialist_vote
 
 logger = logging.getLogger(__name__)
 
@@ -20,7 +21,8 @@ def cast_vote(
     Cast your specialist vote for the final appraisal. Call this as your LAST action.
 
     Args:
-        recommendation: Your verdict — must be "BUY", "HOLD", or "VERIFY_FURTHER".
+        recommendation: Verdict — AUTHENTICATE, VERIFY_FURTHER, or REJECT (same labels as synthesis
+            and eval tests). Legacy BUY/HOLD are still accepted and mapped to AUTHENTICATE / VERIFY_FURTHER.
         confidence: Your confidence from 0.0 (very uncertain) to 1.0 (certain).
         primary_reason: The single most important reason for your vote.
         secondary_reason: A supporting reason for your vote.
@@ -28,11 +30,10 @@ def cast_vote(
     Returns:
         Confirmed vote record.
     """
-    valid = {"BUY", "HOLD", "VERIFY_FURTHER"}
-    upper = recommendation.upper()
-    if upper not in valid:
-        logger.warning("Invalid vote '%s' coerced to VERIFY_FURTHER", recommendation)
-    rec = upper if upper in valid else "VERIFY_FURTHER"
+    raw = (recommendation or "").strip().upper()
+    rec = normalize_specialist_vote(recommendation)
+    if raw and raw not in CANONICAL_VOTES and raw not in LEGACY_VOTE_INPUTS:
+        logger.warning("Invalid vote %r — normalized to %s", recommendation, rec)
     return {
         "vote": rec,
         "confidence": round(max(0.0, min(1.0, float(confidence))), 2),

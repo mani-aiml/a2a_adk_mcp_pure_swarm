@@ -3,6 +3,7 @@ WORKDIR /app
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY agents.yaml .
+COPY otel_setup.py .
 COPY shared/ shared/
 COPY provenance_agent/ provenance_agent/
 EXPOSE 8080

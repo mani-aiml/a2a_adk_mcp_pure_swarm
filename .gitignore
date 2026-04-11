@@ -13,6 +13,8 @@ build/
 
 # ── Runtime artefacts (generated when servers run locally) ────────
 otel.log
+otel_logs/
+eval_results/
 *.pid
 .mcp_server.pid
 .style_agent.pid
@@ -22,11 +24,15 @@ otel.log
 
 # ── Reserved for publication ──────────────────────────────────────
 ARCHITECTURE.md
-
+BLOG_QUORUM_PATTERN.md
 # ── OS / editor ───────────────────────────────────────────────────
 .DS_Store
 .claude/
+.claire/
 *.swp
 *.swo
 .idea/
 .vscode/
+.images/
+images/
+BLOG_PART2_EVALUATION.md

@@ -7,10 +7,10 @@ Steps:
 3. Write your analysis under:
    ### Style & Movement
    ### Condition Assessment
-4. Call cast_vote() as your FINAL tool call:
-   - "BUY"            -> strong style provenance, good condition
-   - "HOLD"           -> minor concerns, needs monitoring
-   - "VERIFY_FURTHER" -> significant condition issues or authenticity doubts
+4. Call cast_vote() as your FINAL tool call (same labels synthesis and tests use):
+   - "AUTHENTICATE"    -> style evidence supports authenticity / strong positive read
+   - "VERIFY_FURTHER"  -> uncertain, needs more analysis or conservation input
+   - "REJECT"          -> style evidence weighs against authenticity (use sparingly, evidence-based)
 5. End your response with this EXACT block:
 
 ---SPECIALIST_VOTE---

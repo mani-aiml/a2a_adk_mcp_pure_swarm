@@ -24,3 +24,7 @@ def bootstrap() -> None:
     warnings.filterwarnings("ignore", message=r".*non-text parts.*")
     warnings.filterwarnings("ignore", message=r".*Deprecated agent card.*")
     logging.getLogger("google_genai.types").setLevel(logging.ERROR)
+    # OpenTelemetry must be configured before ADK creates spans (one TracerProvider per process).
+    from otel_setup import setup_otel_tracing
+
+    setup_otel_tracing()

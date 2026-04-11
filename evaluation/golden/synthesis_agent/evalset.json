@@ -1,0 +1,55 @@
+{
+  "eval_set_id": "synthesis_agent_unit_v1",
+  "name": "Synthesis Agent Unit Evaluation",
+  "description": "Golden dataset for the synthesis agent. Tests majority voting logic given pre-written specialist reports.",
+  "eval_cases": [
+    {
+      "eval_id": "synthesis_unanimous_authenticate",
+      "conversation": [
+        {
+          "invocation_id": "inv_001",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Style report: AUTHENTICATE. Provenance report: AUTHENTICATE. Valuation report: AUTHENTICATE. Apply quorum voting and issue final verdict."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "All three specialists voted AUTHENTICATE. Quorum is unanimous. Final verdict: AUTHENTICATE with high confidence."}]
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "synthesis_majority_verify",
+      "conversation": [
+        {
+          "invocation_id": "inv_002",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Style report: AUTHENTICATE. Provenance report: VERIFY_FURTHER. Valuation report: VERIFY_FURTHER. Apply quorum voting and issue final verdict."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "Two specialists voted VERIFY_FURTHER, one voted AUTHENTICATE. Majority vote is VERIFY_FURTHER. Final verdict: VERIFY_FURTHER. Further provenance and market research is recommended before authentication."}]
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "synthesis_split_verify",
+      "conversation": [
+        {
+          "invocation_id": "inv_003",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Style report: AUTHENTICATE. Provenance report: REJECT. Valuation report: AUTHENTICATE. Apply quorum voting and issue final verdict."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "No majority. Style and Valuation voted AUTHENTICATE but Provenance voted REJECT. Without quorum majority, the final verdict is VERIFY_FURTHER. Provenance concerns must be resolved before authentication can proceed."}]
+          }
+        }
+      ]
+    }
+  ]
+}

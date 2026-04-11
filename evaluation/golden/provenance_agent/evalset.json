@@ -1,0 +1,82 @@
+{
+  "eval_set_id": "provenance_agent_unit_v1",
+  "name": "Provenance Agent Unit Evaluation",
+  "description": "Golden dataset for the provenance specialist. Tests ownership history and legal checks in isolation.",
+  "eval_cases": [
+    {
+      "eval_id": "provenance_clean_christie",
+      "conversation": [
+        {
+          "invocation_id": "inv_001",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Check provenance for a Monet Water Lilies acquired via Christie's London 1989, Lot 42. Country of origin: France."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "Provenance is well documented via major auction house. No export restrictions identified for France to UK transfer in 1989. Ownership chain is clean."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "check_provenance", "args": {}},
+              {"name": "check_export_restrictions", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "provenance_missing_gap",
+      "conversation": [
+        {
+          "invocation_id": "inv_002",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Check provenance for an oil painting, European origin, unknown ownership from 1939 to 1946. Current owner acquired in 1980 from a private dealer."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "A gap in ownership from 1939 to 1946 raises significant provenance concerns due to potential wartime displacement. Further research is strongly recommended before any sale."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "check_provenance", "args": {}},
+              {"name": "check_export_restrictions", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "provenance_clear_modern",
+      "conversation": [
+        {
+          "invocation_id": "inv_003",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Check provenance for a 2015 contemporary painting purchased directly from the artist, documented invoice, no prior sales history."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "Provenance is straightforward for a contemporary work purchased directly from the artist. No export restrictions apply. Clean title."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "check_provenance", "args": {}},
+              {"name": "check_export_restrictions", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    }
+  ]
+}

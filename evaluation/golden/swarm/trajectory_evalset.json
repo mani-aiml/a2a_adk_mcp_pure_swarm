@@ -1,0 +1,69 @@
+{
+  "eval_set_id": "swarm_integration_trajectory_v1",
+  "name": "Swarm Integration Trajectory Evaluation",
+  "description": "End-to-end golden dataset for the full swarm. Tests that every specialist fires in parallel, each calls the correct tools in order, and synthesis applies majority voting.",
+  "eval_cases": [
+    {
+      "eval_id": "swarm_monet_full_pipeline",
+      "conversation": [
+        {
+          "invocation_id": "inv_001",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Appraise a Monet Water Lilies, oil on canvas, 80x100cm, painted in 1906. Acquired via Christie's London 1989 (Lot 42). Condition good, minor craquelure. Country of origin: France."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "AUTHENTICATE. All three specialists independently authenticated. Majority voting confirms authentication. Estimated value range $10M to $40M. Provenance is clean via Christie's 1989. Style consistent with Monet's mature Water Lilies period."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "analyze_style", "args": {}},
+              {"name": "assess_condition_factors", "args": {}},
+              {"name": "cast_vote", "args": {}},
+              {"name": "check_provenance", "args": {}},
+              {"name": "check_export_restrictions", "args": {}},
+              {"name": "cast_vote", "args": {}},
+              {"name": "get_auction_comparables", "args": {}},
+              {"name": "estimate_insurance_value", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "swarm_unsigned_verify",
+      "conversation": [
+        {
+          "invocation_id": "inv_002",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Appraise an unsigned abstract acrylic, 60x60cm, estimated 2010s. No ownership history. Condition excellent."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "VERIFY_FURTHER. Lack of attribution and provenance prevents authentication. Market value limited without artist identity. Excellent condition is the only positive factor."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "analyze_style", "args": {}},
+              {"name": "assess_condition_factors", "args": {}},
+              {"name": "cast_vote", "args": {}},
+              {"name": "check_provenance", "args": {}},
+              {"name": "check_export_restrictions", "args": {}},
+              {"name": "cast_vote", "args": {}},
+              {"name": "get_auction_comparables", "args": {}},
+              {"name": "estimate_insurance_value", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    }
+  ]
+}

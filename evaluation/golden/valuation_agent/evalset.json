@@ -1,0 +1,57 @@
+{
+  "eval_set_id": "valuation_agent_unit_v1",
+  "name": "Valuation Agent Unit Evaluation",
+  "description": "Golden dataset for the market valuator specialist. Tests auction comparables and insurance estimates in isolation.",
+  "eval_cases": [
+    {
+      "eval_id": "valuation_monet_high",
+      "conversation": [
+        {
+          "invocation_id": "inv_001",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Estimate market value for a Monet Water Lilies, oil on canvas, 80x100cm, 1906. Condition: good."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "Based on comparable Monet sales at major auction houses, market value is estimated in the range of $10M to $40M depending on condition report and provenance. Insurance value should be set at the upper end of this range."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "get_auction_comparables", "args": {}},
+              {"name": "estimate_insurance_value", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "valuation_unsigned_low",
+      "conversation": [
+        {
+          "invocation_id": "inv_002",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Estimate market value for an unsigned abstract acrylic, 60x60cm, contemporary, excellent condition."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "Without artist attribution, comparable sales data is limited. Estimated market value is $500 to $5000 for similarly sized unsigned contemporary works. Condition is excellent but cannot compensate for lack of attribution."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "get_auction_comparables", "args": {}},
+              {"name": "estimate_insurance_value", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    }
+  ]
+}

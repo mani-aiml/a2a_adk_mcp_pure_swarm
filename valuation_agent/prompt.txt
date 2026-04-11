@@ -20,5 +20,5 @@ reason_1: [PRIMARY REASON]
 reason_2: [SECONDARY REASON]
 ---END_VOTE---
 
-Valid votes: BUY / HOLD / VERIFY_FURTHER
+Valid votes: AUTHENTICATE / VERIFY_FURTHER / REJECT (same vocabulary as synthesis and eval tests)
 The ---SPECIALIST_VOTE--- block is REQUIRED by the synthesis agent.

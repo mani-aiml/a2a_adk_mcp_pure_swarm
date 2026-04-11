@@ -35,3 +35,5 @@ art_appraisal_pipeline = SequentialAgent(
     description="Full unbiased art appraisal: parallel independent evaluation -> majority-vote synthesis.",
     sub_agents=[parallel_evaluation, _synthesis_agent],
 )
+
+root_agent = art_appraisal_pipeline

@@ -2,6 +2,9 @@ import asyncio
 import logging
 import os
 import sys
+import time
+
+os.environ.setdefault("OTEL_SERVICE_NAME", "art-appraisal-cli")
 
 from shared.config import bootstrap
 bootstrap()
@@ -12,7 +15,7 @@ from google.genai import types
 from opentelemetry import trace
 
 from orchestrator.agent import art_appraisal_pipeline
-from otel_setup import setup_otel_tracing, setup_otel_logging, otel_log, OTEL_LOG_PATH
+from otel_setup import setup_otel_logging, otel_log, OTEL_LOG_PATH
 from shared.registry import SPECIALISTS, SPECIALIST_NAMES, SYNTHESIS
 from display import (
     C, agent_label, colored_label, banner, ruler,
@@ -20,8 +23,10 @@ from display import (
     print_parallel_start, print_parallel_agent_active, print_parallel_complete,
 )
 
-tracer = setup_otel_tracing()
-otel_logger = setup_otel_logging()
+tracer = trace.get_tracer(__name__)
+otel_logger = setup_otel_logging(
+    service_name=os.environ.get("OTEL_SERVICE_NAME", "art-appraisal-cli"),
+)
 
 APP_NAME = "art_appraisal_swarm"
 USER_ID = "learner_001"
@@ -48,6 +53,15 @@ def _process_event(
     state: dict,
 ) -> None:
     prev = state["prev_author"]
+    texts, fn_calls, fn_responses = extract_parts(event)
+
+    if state.get("ttft_ms") is None and texts and any(t.strip() for t in texts):
+        ttft_ms = (time.perf_counter() - state["t_request_start"]) * 1000.0
+        state["ttft_ms"] = ttft_ms
+        span = trace.get_current_span()
+        if span.is_recording():
+            span.set_attribute("app.ttft_ms", round(ttft_ms, 2))
+            span.add_event("first_model_text", {"ttft_ms": round(ttft_ms, 2)})
 
     if author != prev and prev in SPECIALIST_NAMES:
         if prev not in state["specialist_texts"]:
@@ -89,8 +103,6 @@ def _process_event(
             otel_log(otel_logger, logging.INFO, "Handoff",
                      agent_from=prev, agent_to=author, session_id=state["session_id"])
         state["prev_author"] = author
-
-    texts, fn_calls, fn_responses = extract_parts(event)
 
     for fc in fn_calls:
         otel_log(otel_logger, logging.DEBUG, "Tool call",
@@ -163,7 +175,11 @@ async def run_appraisal_chat() -> None:
         print(f"      |     +-- {colored_label(s.name)}")
     print(f"      +-- {colored_label(SYNTHESIS.name)} (Stage 2)")
     print()
-    print(f"  OTEL logs -> {OTEL_LOG_PATH}   (tail -f otel.log)")
+    print(f"  OTEL file log -> {OTEL_LOG_PATH}   (tail -f otel.log)")
+    if os.environ.get("OTEL_EXPORTER_OTLP_TRACES_ENDPOINT") or os.environ.get(
+        "OTEL_EXPORTER_OTLP_ENDPOINT"
+    ):
+        print("  OTLP tracing enabled — open Jaeger: http://localhost:16686")
     print()
     print("  Try: 'Appraise a Monet Water Lilies, oil on canvas, 80x100cm,")
     print("        painted in 1906. Acquired via Christie's London 1989 (Lot 42).")
@@ -192,6 +208,8 @@ async def run_appraisal_chat() -> None:
             "specialist_texts": {},
             "specialist_buffers": {},
             "session_id": session.id,
+            "t_request_start": time.perf_counter(),
+            "ttft_ms": None,
         }
 
         with tracer.start_as_current_span(

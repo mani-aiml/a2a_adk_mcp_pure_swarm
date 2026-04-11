@@ -3,6 +3,7 @@ mcp_port: 8080
 
 specialists:
   - name: style_analyst
+    eval_package: style_agent
     service_name: style-agent
     description: >-
       Specialist in art history, artistic style, technique, and medium analysis.
@@ -15,6 +16,7 @@ specialists:
     color: "\033[1;96m"
 
   - name: provenance_specialist
+    eval_package: provenance_agent
     service_name: provenance-agent
     description: >-
       Specialist in artwork provenance, ownership history, authenticity
@@ -27,6 +29,7 @@ specialists:
     color: "\033[1;93m"
 
   - name: market_valuator
+    eval_package: valuation_agent
     service_name: valuation-agent
     description: >-
       Specialist in art market valuation, recent auction comparables,
@@ -40,6 +43,7 @@ specialists:
 
 synthesis:
   name: synthesis_agent
+  eval_package: synthesis_agent
   service_name: synthesis-agent
   description: >-
     Chief appraiser: reads all specialist reports, extracts votes,

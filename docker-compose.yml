@@ -1,5 +1,16 @@
 services:
 
+  jaeger:
+    image: jaegertracing/all-in-one:1.57
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    # Host ports are configurable when 16686/4318 are already in use (e.g. another Jaeger).
+    ports:
+      - "${JAEGER_UI_HOST_PORT:-16686}:16686"
+      - "${JAEGER_OTLP_HTTP_HOST_PORT:-4318}:4318"
+    networks:
+      - appraisal-net
+
   mcp-server:
     build:
       context: .
@@ -10,11 +21,11 @@ services:
     networks:
       - appraisal-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      test: ["CMD", "python", "/app/shared/compose_healthcheck.py"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 10s
+      start_period: 30s
 
   style-agent:
     build:
@@ -24,17 +35,22 @@ services:
       MCP_SERVER_URL: "http://mcp-server:8080/mcp"
       AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
+      OTEL_SERVICE_NAME: style-agent
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_FILE_LOG: "0"
     depends_on:
       mcp-server:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - appraisal-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      test: ["CMD", "python", "/app/shared/compose_healthcheck.py"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 30s
 
   provenance-agent:
     build:
@@ -44,17 +60,22 @@ services:
       MCP_SERVER_URL: "http://mcp-server:8080/mcp"
       AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
+      OTEL_SERVICE_NAME: provenance-agent
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_FILE_LOG: "0"
     depends_on:
       mcp-server:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - appraisal-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      test: ["CMD", "python", "/app/shared/compose_healthcheck.py"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 30s
 
   valuation-agent:
     build:
@@ -64,17 +85,22 @@ services:
       MCP_SERVER_URL: "http://mcp-server:8080/mcp"
       AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
+      OTEL_SERVICE_NAME: valuation-agent
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_FILE_LOG: "0"
     depends_on:
       mcp-server:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - appraisal-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      test: ["CMD", "python", "/app/shared/compose_healthcheck.py"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 30s
 
   synthesis-agent:
     build:
@@ -83,14 +109,20 @@ services:
     environment:
       AGENT_HOST: "0.0.0.0"
       NOVA_API_KEY: ${NOVA_API_KEY}
+      OTEL_SERVICE_NAME: synthesis-agent
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_FILE_LOG: "0"
+    depends_on:
+      jaeger:
+        condition: service_started
     networks:
       - appraisal-net
     healthcheck:
-      test: ["CMD", "python", "-c", "import socket; socket.create_connection(('localhost', 8080), timeout=5).close()"]
+      test: ["CMD", "python", "/app/shared/compose_healthcheck.py"]
       interval: 10s
       timeout: 5s
       retries: 5
-      start_period: 15s
+      start_period: 30s
 
   orchestrator:
     build:
@@ -102,6 +134,14 @@ services:
       PROVENANCE_SPECIALIST_URL: "http://provenance-agent:8080"
       MARKET_VALUATOR_URL: "http://valuation-agent:8080"
       SYNTHESIS_AGENT_URL: "http://synthesis-agent:8080"
+      OTEL_SERVICE_NAME: orchestrator
+      OTEL_EXPORTER_OTLP_TRACES_ENDPOINT: http://jaeger:4318/v1/traces
+      OTEL_FILE_LOG: "1"
+      # Directory mount: if ./otel.log were mounted as a file and missing on the host, Docker
+      # would create a directory at that path and the process would crash with IsADirectoryError.
+      OTEL_LOG_PATH: /otel_logs/otel.log
+    volumes:
+      - ./otel_logs:/otel_logs
     depends_on:
       style-agent:
         condition: service_healthy
@@ -111,10 +151,46 @@ services:
         condition: service_healthy
       synthesis-agent:
         condition: service_healthy
+      jaeger:
+        condition: service_started
     networks:
       - appraisal-net
     stdin_open: true
     tty: true
+
+  # Runs ADK eval + pytest on appraisal-net (MCP + RemoteA2A URLs set in evaluation/docker/run_network_eval.sh).
+  # Does not start with the default stack — use: docker compose --profile eval run --rm eval-runner
+  eval-runner:
+    profiles: ["eval"]
+    build:
+      context: .
+      dockerfile: eval_runner/Dockerfile
+    environment:
+      NOVA_API_KEY: ${NOVA_API_KEY}
+      MCP_SERVER_URL: http://mcp-server:8080/mcp
+      STYLE_ANALYST_URL: http://style-agent:8080
+      PROVENANCE_SPECIALIST_URL: http://provenance-agent:8080
+      MARKET_VALUATOR_URL: http://valuation-agent:8080
+      SYNTHESIS_AGENT_URL: http://synthesis-agent:8080
+      ADK_EVAL_CONFIG: /app/evaluation/test_config.ci.json
+    volumes:
+      - ./otel_logs:/otel_logs:ro
+      - ./eval_results:/app/eval_results
+    depends_on:
+      mcp-server:
+        condition: service_healthy
+      style-agent:
+        condition: service_healthy
+      provenance-agent:
+        condition: service_healthy
+      valuation-agent:
+        condition: service_healthy
+      synthesis-agent:
+        condition: service_healthy
+      jaeger:
+        condition: service_started
+    networks:
+      - appraisal-net
 
 networks:
   appraisal-net:

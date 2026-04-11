@@ -1,0 +1,40 @@
+{
+  "criteria": {
+    "tool_trajectory_avg_score": {
+      "threshold": 0.8,
+      "match_type": "IN_ORDER"
+    },
+    "response_match_score": 0.5,
+    "final_response_match_v2": 0.7,
+    "hallucinations_v1": {
+      "threshold": 0.65,
+      "evaluate_intermediate_nl_responses": true,
+      "judge_model_options": {
+        "judge_model": "openai/nova-2-pro-v1",
+        "num_samples": 1
+      }
+    },
+    "rubric_based_tool_use_quality_v1": {
+      "threshold": 0.65,
+      "judge_model_options": {
+        "judge_model": "openai/nova-2-pro-v1",
+        "num_samples": 1
+      },
+      "rubrics": [
+        {
+          "rubric_id": "specialist_cast_vote_after_domain_tools",
+          "rubric_content": {
+            "text_property": "The agent calls domain-specific analysis tools before calling cast_vote as the final tool in the sequence."
+          }
+        },
+        {
+          "rubric_id": "no_orphan_tool_calls",
+          "rubric_content": {
+            "text_property": "Tool calls are purposeful: each tool supports the appraisal narrative rather than random invocation."
+          }
+        }
+      ]
+    }
+  },
+  "description": "Swarm appraisal eval thresholds. tool_trajectory_avg_score uses IN_ORDER. hallucinations_v1 with evaluate_intermediate_nl_responses scores grounding of intermediate NL. rubric_based_tool_use_quality_v1 adds LLM-judged process quality. Judge criteria use Amazon Nova (openai/nova-2-pro-v1); set NOVA_API_KEY and Nova-compatible LiteLLM routing as for agent models."
+}

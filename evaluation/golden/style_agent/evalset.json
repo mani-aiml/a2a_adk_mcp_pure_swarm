@@ -1,0 +1,91 @@
+{
+  "eval_set_id": "style_agent_unit_v1",
+  "name": "Style Agent Unit Evaluation",
+  "description": "Golden dataset for the style analyst specialist. Each case tests one interaction in isolation.",
+  "eval_cases": [
+    {
+      "eval_id": "style_monet_impressionism",
+      "conversation": [
+        {
+          "invocation_id": "inv_001",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Analyze the style of a Claude Monet Water Lilies, oil on canvas, 80x100cm, painted in 1906. Condition: good, minor craquelure."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "The artwork is a classic example of French Impressionism. The Water Lilies series represents Monet's mature period with characteristic loose brushwork and emphasis on light and color. Minor craquelure is consistent with age and does not significantly affect value."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "analyze_style", "args": {}},
+              {"name": "assess_condition_factors", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": [
+              [
+                "style_analyst",
+                [
+                  {
+                    "text": "Stylistic read: mature Impressionist handling consistent with Monet Water Lilies; notes on brushwork and light before condition and vote."
+                  }
+                ]
+              ]
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "style_picasso_cubism",
+      "conversation": [
+        {
+          "invocation_id": "inv_002",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Analyze the style of a Pablo Picasso oil painting, Les Demoiselles d'Avignon study, gouache on paper, 1907. Condition: fair, some fading."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "This work shows early Cubist influence in the proto-Cubist style. The fading affects condition score but the historical significance of the 1907 period remains extremely high."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "analyze_style", "args": {}},
+              {"name": "assess_condition_factors", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    },
+    {
+      "eval_id": "style_contemporary_unknown",
+      "conversation": [
+        {
+          "invocation_id": "inv_003",
+          "user_content": {
+            "role": "user",
+            "parts": [{"text": "Analyze the style of an unsigned abstract acrylic painting, 60x60cm, estimated 2010s. Condition: excellent."}]
+          },
+          "final_response": {
+            "role": "model",
+            "parts": [{"text": "The work shows characteristics of contemporary abstract expressionism. Without attribution, style analysis alone cannot determine significant auction value. Condition is a positive factor."}]
+          },
+          "intermediate_data": {
+            "tool_uses": [
+              {"name": "analyze_style", "args": {}},
+              {"name": "assess_condition_factors", "args": {}},
+              {"name": "cast_vote", "args": {}}
+            ],
+            "tool_responses": [],
+            "intermediate_responses": []
+          }
+        }
+      ]
+    }
+  ]
+}

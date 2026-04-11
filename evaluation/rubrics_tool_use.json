@@ -1,0 +1,14 @@
+[
+  {
+    "rubric_id": "specialist_cast_vote_after_domain_tools",
+    "rubric_content": {
+      "text_property": "The agent calls domain-specific analysis tools before calling cast_vote as the final tool in the sequence."
+    }
+  },
+  {
+    "rubric_id": "no_orphan_tool_calls",
+    "rubric_content": {
+      "text_property": "Tool calls are purposeful: each tool supports the appraisal narrative rather than random invocation."
+    }
+  }
+]

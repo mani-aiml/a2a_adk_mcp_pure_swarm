@@ -9,6 +9,8 @@ __pycache__/
 
 # Runtime artefacts
 otel.log
+otel_logs/
+eval_results/
 *.pid
 
 # Version control / editor

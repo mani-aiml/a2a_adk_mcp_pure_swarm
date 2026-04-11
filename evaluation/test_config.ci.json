@@ -1,0 +1,17 @@
+{
+  "criteria": {
+    "tool_trajectory_avg_score": {
+      "threshold": 0.8,
+      "match_type": "IN_ORDER"
+    },
+    "response_match_score": 0.5,
+    "final_response_match_v2": {
+      "threshold": 0.7,
+      "judge_model_options": {
+        "judge_model": "openai/nova-2-lite-v1",
+        "num_samples": 1
+      }
+    }
+  },
+  "description": "CI eval config with lightweight LLM-as-judge (final_response_match_v2 via Nova). Omits hallucinations_v1 / rubrics for speed. Requires NOVA_API_KEY."
+}

@@ -1,0 +1,90 @@
+name: Evaluation CI
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+
+permissions:
+  contents: read
+
+jobs:
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pyyaml
+
+      - name: Run unit tests
+        run: pytest evaluation/unit/ -v --tb=short --junitxml=eval_results/unit_tests.xml
+
+      - name: Upload unit test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: unit-test-results
+          path: eval_results/unit_tests.xml
+
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt pytest pyyaml
+
+      - name: Run integration tests
+        run: pytest evaluation/integration/ -v --tb=short --junitxml=eval_results/integration_tests.xml
+
+      - name: Upload integration test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: integration-test-results
+          path: eval_results/integration_tests.xml
+
+  report:
+    name: Evaluation Report
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests]
+    if: always()
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download all test results
+        uses: actions/download-artifact@v4
+        with:
+          path: eval_results
+          merge-multiple: true
+
+      - name: Generate HTML report
+        run: python evaluation/generate_report.py --results-dir eval_results
+
+      - name: Upload HTML report
+        uses: actions/upload-artifact@v4
+        with:
+          name: eval-report
+          path: eval_results/eval_report.html

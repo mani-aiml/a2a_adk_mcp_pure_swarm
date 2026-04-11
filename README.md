@@ -22,7 +22,7 @@ recommendation.
 ## Setup
 
 ```bash
-git clone --branch part-1 --depth 1 <your-repo-url> 
+git clone --branch part-2 --depth 1 <your-repo-url>
 cd nova_adk_a2a_mcp_swarm
 
 # Configure credentials
@@ -75,6 +75,9 @@ port management required.
 | Provenance Specialist | `provenance-agent`   | Ownership history, legal       |
 | Market Valuator       | `valuation-agent`    | Auction comparables, insurance |
 | Synthesis Agent       | `synthesis-agent`    | Majority vote, final verdict   |
+| Eval runner (optional)| `eval-runner`        | ADK eval + pytest **on** `appraisal-net` (profile `eval`) |
+
+**Vote vocabulary:** Specialists, `cast_vote` (MCP), synthesis prompts, and evaluation tests all use the same labels: **AUTHENTICATE**, **VERIFY_FURTHER**, **REJECT** (see `shared/vote_vocabulary.py`). Legacy **BUY** / **HOLD** are still accepted by `cast_vote` and map to AUTHENTICATE / VERIFY_FURTHER for backward compatibility.
 
 Adding a new specialist agent requires only two changes:
 1. Add an entry to `agents.yaml`
@@ -97,7 +100,7 @@ multiagent systems with Google ADK, A2A, and MCP.
 |-----|---------|----------------|
 | `part-1` | Part 1: Architecture & Swarm Voting | A2A services, MCP tools, parallel voting, OTEL, Docker, Bedrock Nova |
 | `part-1.v2` | Part 1.v2: Refactored for Scale | Config-driven registry, agent factory, uniform ports, Docker service-name routing, production considerations |
-| `part-2` | Part 2: Evaluation *(coming soon)* | Golden test cases, LLM-as-judge scoring |
+| `part-2` | Part 2: Evaluation | Golden datasets, registry-driven pytest, LLM-as-judge (Nova), CI pipeline, HTML report |
 | `part-3` | Part 3: Red-Teaming *(coming soon)* | Prompt injection, vote manipulation |
 | `part-4` | Part 4: Production Security *(coming soon)* | Auth, rate-limiting, secrets management |
 
@@ -105,6 +108,7 @@ Checkout any tag to see the code at that stage:
 ```bash
 git checkout part-1      # Original working swarm
 git checkout part-1.v2   # Refactored for scalability
+git checkout part-2      # Evaluation suite
 ```
 
 ### What changed from `part-1` to `part-1.v2`
@@ -132,12 +136,50 @@ specialist required editing 6 files.
 - **Production considerations** — documented all single points of failure (MCP
   server, LLM API key, session state) with mitigation strategies.
 
-## Observability
+## Evaluation and scaling
 
-OTEL traces and logs are written to `otel.log`:
+Details live in [evaluation/README.md](evaluation/README.md). Summary:
+
+### Evaluation pyramid (what to run as you grow)
+
+| Tier | Purpose | **Implemented in this repo** | **Recommended when scaling (10+ agents)** |
+|------|---------|------------------------------|---------------------------------------------|
+| **A — Contracts** | Fast, deterministic: goldens vs `agents.yaml`, tool order, registry policy | `pytest evaluation/unit evaluation/integration` (also **CI** in `.github/workflows/evaluation.yml`) | Add **fault** cases (e.g. MCP unreachable → graceful VERIFY_FURTHER + confidence 0.0, no crash) |
+| **B — Single-agent execution** | `adk eval` per `eval_package` | `evaluation/run_evals.sh` + `list_eval_packages.py`; goldens under `evaluation/golden/<package>/` | **CI matrix / shards**: split eval packages across parallel jobs so wall-clock time stays bounded (e.g. GitHub Actions `strategy.matrix` + a script that slices `list_eval_packages.py` output) |
+| **C — Multi-agent interaction** | Orchestrated A2A + synthesis | `adk eval orchestrator` on `evaluation/golden/swarm/trajectory_evalset.json` | More **curated** swarm scenarios; pairwise / n-wise for high-risk edges |
+| **D — Live / observability** | Real network, latency, errors | `evaluation/trace_eval/` against OTEL JSONL (`otel_logs/otel.log`) | Nightly soak, staging gates, SLO-style thresholds |
+
+### Eval runner on the Docker network
+
+Host-run `adk eval` cannot resolve `http://mcp-server:8080` or `style-agent:8080`. The **`eval-runner`** service builds the repo image, joins **`appraisal-net`**, sets MCP and RemoteA2A base URLs, and runs `./evaluation/run_evals.sh`.
 
 ```bash
-tail -f otel.log
+# Start the swarm (no eval-runner in the default profile)
+docker compose up -d mcp-server style-agent provenance-agent valuation-agent synthesis-agent jaeger
+
+# One-shot full eval suite (default: CI-friendly ADK config inside compose)
+docker compose --profile eval run --rm eval-runner
+
+# Examples
+docker compose --profile eval run --rm eval-runner --unit-only
+docker compose --profile eval run --rm -e ADK_EVAL_CONFIG=/app/evaluation/test_config.json eval-runner
+```
+
+`eval-runner` mounts **`otel_logs` read-only** for trace pytest when a log exists. Results (JUnit XML + ADK eval JSONs) are written to **`eval_results/`** on the host, and an **HTML report** is generated at `eval_results/eval_report.html`.
+
+### Beyond ~10 specialists
+
+- **Shard / matrix (best practice):** partition `eval_package` names into disjoint sets and run **parallel CI jobs** (each job runs `adk eval` only for its shard). This is **orchestration**, not a pytest feature — see the Tier B row above.
+- Keep **Tier A** on every PR; move full **Tier B** or judge-heavy criteria to **nightly** or **pre-release** if cost or time grows.
+
+## Observability
+
+With **Docker Compose**, the orchestrator writes file-export OTEL JSONL to **`otel_logs/otel.log`** on the host (directory bind mount + `OTEL_LOG_PATH`). Other services send traces to **Jaeger** via OTLP on the Docker network (`http://jaeger:4318`). On the host, the Jaeger UI defaults to **`http://localhost:16686`** (OTLP HTTP on **4318**). If those host ports are already taken, set **`JAEGER_UI_HOST_PORT`** and **`JAEGER_OTLP_HTTP_HOST_PORT`** in `.env` (see `.env.example`). For a **local** `python main.py` run, the default file is **`otel.log`** in the repo root unless you set `OTEL_LOG_PATH`.
+
+```bash
+tail -f otel_logs/otel.log   # after compose orchestrator
+# or
+tail -f otel.log             # local CLI default
 ```
 
 ## Production Considerations
@@ -171,9 +213,10 @@ with no connection pooling or backpressure.
   MCP server instead of opening a new connection per tool call. At 100 agents,
   this dramatically reduces TCP overhead.
 - **Graceful degradation** — if a specialist cannot reach its tools, it should
-  return a partial report with a confidence of 0.0 and vote `VERIFY_FURTHER`,
+  return a partial report with a confidence of 0.0 and vote **VERIFY_FURTHER**
+  (same vocabulary as `cast_vote` and synthesis: AUTHENTICATE / VERIFY_FURTHER / REJECT),
   rather than failing silently. The synthesis agent already handles missing votes
-  this way.
+  this way. Automated tests for this path are **recommended** but not yet in the suite.
 
 ### 2. Single LLM API key / endpoint
 
