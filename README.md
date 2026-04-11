@@ -144,10 +144,10 @@ Details live in [evaluation/README.md](evaluation/README.md). Summary:
 
 | Tier | Purpose | **Implemented in this repo** | **Recommended when scaling (10+ agents)** |
 |------|---------|------------------------------|---------------------------------------------|
-| **A — Contracts** | Fast, deterministic: goldens vs `agents.yaml`, tool order, registry policy | `pytest evaluation/unit evaluation/integration` (also **CI** in `.github/workflows/evaluation.yml`) | Add **fault** cases (e.g. MCP unreachable → graceful VERIFY_FURTHER + confidence 0.0, no crash) |
-| **B — Single-agent execution** | `adk eval` per `eval_package` | `evaluation/run_evals.sh` + `list_eval_packages.py`; goldens under `evaluation/golden/<package>/` | **CI matrix / shards**: split eval packages across parallel jobs so wall-clock time stays bounded (e.g. GitHub Actions `strategy.matrix` + a script that slices `list_eval_packages.py` output) |
-| **C — Multi-agent interaction** | Orchestrated A2A + synthesis | `adk eval orchestrator` on `evaluation/golden/swarm/trajectory_evalset.json` | More **curated** swarm scenarios; pairwise / n-wise for high-risk edges |
-| **D — Live / observability** | Real network, latency, errors | `evaluation/trace_eval/` against OTEL JSONL (`otel_logs/otel.log`) | Nightly soak, staging gates, SLO-style thresholds |
+| **1. Contracts** | Fast, deterministic: goldens vs `agents.yaml`, tool order, registry policy | `pytest evaluation/unit evaluation/integration` (also **CI** in `.github/workflows/evaluation.yml`) | Add **fault** cases (e.g. MCP unreachable → graceful VERIFY_FURTHER + confidence 0.0, no crash) |
+| **2. Single-agent execution** | `adk eval` per `eval_package` | `evaluation/run_evals.sh` + `list_eval_packages.py`; goldens under `evaluation/golden/<package>/` | **CI matrix / shards**: split eval packages across parallel jobs so wall-clock time stays bounded (e.g. GitHub Actions `strategy.matrix` + a script that slices `list_eval_packages.py` output) |
+| **3. Multi-agent interaction** | Orchestrated A2A + synthesis | `adk eval orchestrator` on `evaluation/golden/swarm/trajectory_evalset.json` | More **curated** swarm scenarios; pairwise / n-wise for high-risk edges |
+| **4. Live / observability** | Real network, latency, errors | `evaluation/trace_eval/` against OTEL JSONL (`otel_logs/otel.log`) | Nightly soak, staging gates, SLO-style thresholds |
 
 ### Eval runner on the Docker network
 
